@@ -1,19 +1,560 @@
 
 ---
+import NeuralNetwork from "../components/NeuralNetwork.astro";
+
 const nombre = "Fabián Valdés";
-const especialidad = "Python | Data Science | Inteligencia Artificial";
+
+const habilidades = [
+  "Python", "SQL", "C++", "Machine Learning",
+  "Computer Vision", "Linux", "Docker",
+  "Automatización", "Análisis de datos"
+];
+
+const proyectos = [
+  {
+    numero: "01",
+    categoria: "MACHINE LEARNING",
+    titulo: "Análisis de señales sísmicas",
+    descripcion:
+      "Procesamiento y clasificación de señales sísmicas mediante técnicas computacionales y aprendizaje automático.",
+    tecnologias: ["Python", "Machine Learning", "Señales"]
+  },
+  {
+    numero: "02",
+    categoria: "AUTOMATIZACIÓN",
+    titulo: "Automatización de reportes científicos",
+    descripcion:
+      "Desarrollo de herramientas para procesar información y generar informes científicos de manera automatizada.",
+    tecnologias: ["Python", "Excel", "MATLAB"]
+  },
+  {
+    numero: "03",
+    categoria: "COMPUTER VISION",
+    titulo: "Visión computacional",
+    descripcion:
+      "Desarrollo de soluciones de análisis de imágenes y detección de objetos mediante herramientas de visión artificial.",
+    tecnologias: ["Python", "OpenCV", "Deep Learning"]
+  }
+];
 ---
 
+<!doctype html>
 <html lang="es">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>{nombre} | Portafolio Profesional</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta
+      name="description"
+      content="Portafolio profesional de Fabián Valdés. Python, ciencia de datos, inteligencia artificial y automatización."
+    />
+    <title>{nombre} | Data Science & Software Development</title>
   </head>
 
   <body>
-    <h1>Hola, soy {nombre}</h1>
-    <p>{especialidad}</p>
-    <p>Bienvenido a mi portafolio profesional.</p>
+    <header class="header">
+      <nav class="container navigation" aria-label="Navegación principal">
+        <a class="logo" href="#inicio">
+          <span class="logo-symbol">&lt;/&gt;</span> FV<span class="dot">.</span>
+        </a>
+
+        <div class="nav-links">
+          <a href="#sobre-mi">Sobre mí</a>
+          <a href="#experiencia">Experiencia</a>
+          <a href="#proyectos">Proyectos</a>
+          <a href="#contacto">Contacto</a>
+        </div>
+      </nav>
+    </header>
+
+    <main>
+      <section id="inicio" class="hero container">
+        <div class="hero-content">
+          <p class="eyebrow">
+            <span class="status-dot"></span>
+            PYTHON · DATA SCIENCE · AI
+          </p>
+
+          <h1>
+            Transformando datos<br />
+            en <span class="gradient-text">soluciones.</span>
+          </h1>
+
+          <p class="hero-description">
+            Soy <strong>{nombre}</strong>, desarrollador especializado
+            en programación, automatización y análisis de datos.
+            Combino experiencia científica con desarrollo de software
+            para resolver problemas complejos.
+          </p>
+
+          <div class="actions">
+            <a class="button primary" href="#proyectos">
+              Explorar proyectos <span aria-hidden="true">↗</span>
+            </a>
+            <a class="button secondary" href="#contacto">
+              Contactar
+            </a>
+          </div>
+        </div>
+
+        <div class="visual">
+          <NeuralNetwork />
+        </div>
+      </section>
+
+      <section id="sobre-mi" class="section section-alt">
+        <div class="container">
+          <p class="section-kicker">01 / PERFIL</p>
+          <h2>Sobre <span class="accent">mí.</span></h2>
+
+          <div class="about-grid">
+            <div>
+              <p class="lead">
+                Desarrollo tecnología para convertir información
+                compleja en resultados útiles.
+              </p>
+              <p class="muted">
+                Mi experiencia incluye el análisis de señales
+                sísmicas, el desarrollo de herramientas científicas
+                y la automatización de procesos. Me interesan
+                especialmente la ciencia de datos, las redes
+                neuronales y el desarrollo de sistemas eficientes.
+              </p>
+            </div>
+
+            <div class="skills">
+              <h3>Stack tecnológico</h3>
+              <div class="tags">
+                {habilidades.map((habilidad) => (
+                  <span class="tag">{habilidad}</span>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="experiencia" class="section">
+        <div class="container">
+          <p class="section-kicker">02 / TRAYECTORIA</p>
+          <h2>Experiencia <span class="accent">profesional.</span></h2>
+
+          <article class="experience-card">
+            <div>
+              <p class="card-category">INVESTIGACIÓN Y TECNOLOGÍA</p>
+              <h3>Análisis sísmico y desarrollo de software</h3>
+              <p class="muted">
+                Experiencia en el Observatorio Volcanológico de
+                los Andes del Sur (OVDAS), trabajando con
+                información sísmica, procesamiento de señales,
+                automatización de informes y herramientas
+                computacionales de apoyo científico.
+              </p>
+            </div>
+            <span class="experience-date">2014 — 2017</span>
+          </article>
+        </div>
+      </section>
+
+      <section id="proyectos" class="section section-alt">
+        <div class="container">
+          <p class="section-kicker">03 / TRABAJO</p>
+          <h2>Proyectos <span class="accent">destacados.</span></h2>
+          <p class="section-intro">
+            Una selección de áreas y soluciones en las que he trabajado.
+          </p>
+
+          <div class="project-grid">
+            {proyectos.map((proyecto) => (
+              <article class="project-card">
+                <div class="project-top">
+                  <span>{proyecto.categoria}</span>
+                  <span>{proyecto.numero}</span>
+                </div>
+                <div class="project-art" aria-hidden="true">
+                  <span class="art-ring"></span>
+                  <span class="art-ring art-ring-two"></span>
+                  <span class="art-core"></span>
+                </div>
+                <h3>{proyecto.titulo}</h3>
+                <p>{proyecto.descripcion}</p>
+                <div class="tags">
+                  {proyecto.tecnologias.map((tecnologia) => (
+                    <span class="tag">{tecnologia}</span>
+                  ))}
+                </div>
+              </article>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section id="contacto" class="section contact-section">
+        <div class="container">
+          <p class="section-kicker">04 / CONTACTO</p>
+          <h2>Construyamos algo <span class="accent">interesante.</span></h2>
+          <p class="muted">
+            ¿Tienes un proyecto, una oportunidad profesional
+            o una idea que quieras desarrollar?
+          </p>
+          <a
+            class="button primary"
+            href="https://github.com/valdescaro"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            Visitar mi GitHub ↗
+          </a>
+        </div>
+      </section>
+    </main>
+
+    <footer>
+      <div class="container footer-inner">
+        <span>© {new Date().getFullYear()} {nombre}</span>
+        <span>Desarrollado con Astro · Publicado en Cloudflare</span>
+      </div>
+    </footer>
   </body>
 </html>
+
+<style is:global>
+  :root {
+    font-family: "Segoe UI", Arial, sans-serif;
+    color: #e8f2ff;
+    background: #080f1d;
+    font-synthesis: none;
+    scroll-behavior: smooth;
+  }
+
+  * { box-sizing: border-box; }
+
+  body { margin: 0; }
+
+  a { color: inherit; text-decoration: none; }
+
+  .container {
+    width: min(1120px, calc(100% - 48px));
+    margin-inline: auto;
+  }
+
+  .header {
+    position: sticky;
+    top: 0;
+    z-index: 20;
+    background: rgba(8, 15, 29, .92);
+    backdrop-filter: blur(18px);
+    border-bottom: 1px solid #233348;
+  }
+
+  .navigation {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    min-height: 78px;
+    gap: 20px;
+  }
+
+  .logo {
+    font-size: 25px;
+    font-weight: 800;
+    letter-spacing: -1px;
+  }
+
+  .logo-symbol, .dot, .accent { color: #00d4ff; }
+
+  .logo-symbol { font-size: 18px; margin-right: 10px; }
+
+  .nav-links { display: flex; gap: 30px; }
+
+  .nav-links a {
+    font-size: 13px;
+    color: #b0c1d4;
+    transition: color .2s;
+  }
+
+  .nav-links a:hover { color: #00d4ff; }
+
+  .hero {
+    min-height: 650px;
+    display: grid;
+    grid-template-columns: 1.2fr 1fr;
+    align-items: center;
+    gap: 45px;
+    padding-block: 100px;
+  }
+
+  .eyebrow, .section-kicker, .card-category {
+    color: #19e6be;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 2px;
+  }
+
+  .status-dot {
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    margin-right: 9px;
+    border-radius: 50%;
+    background: #19e6be;
+    box-shadow: 0 0 12px #19e6be;
+  }
+
+  h1, h2, h3 { letter-spacing: -1px; }
+
+  h1 {
+    font-size: clamp(45px, 5.5vw, 76px);
+    line-height: 1.08;
+    margin: 28px 0;
+  }
+
+  .gradient-text {
+    background: linear-gradient(100deg, #00d4ff, #19e6be);
+    color: transparent;
+    background-clip: text;
+  }
+
+  .hero-description {
+    color: #a9bcd0;
+    line-height: 1.9;
+    max-width: 570px;
+    font-size: 16px;
+  }
+
+  .hero-description strong { color: #e8f2ff; }
+
+  .actions {
+    display: flex;
+    gap: 14px;
+    flex-wrap: wrap;
+    margin-top: 32px;
+  }
+
+  .button {
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+    gap: 14px;
+    padding: 15px 23px;
+    border-radius: 7px;
+    font-size: 14px;
+    font-weight: 700;
+    transition: transform .2s, background .2s;
+  }
+
+  .button:hover { transform: translateY(-3px); }
+
+  .primary {
+    background: #00d4ff;
+    color: #07111e;
+  }
+
+  .primary:hover { background: #19e6be; }
+
+  .secondary {
+    border: 1px solid #34465e;
+    color: #d6e7f8;
+  }
+
+  .visual {
+    position: relative;
+    width: 100%;
+    min-width: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .section {
+    padding: 100px 0;
+    scroll-margin-top: 78px;
+  }  
+
+  .section-alt { background: #101c2e; }
+
+  h2 {
+    font-size: clamp(32px, 4vw, 48px);
+    margin: 16px 0 35px;
+  }
+
+  h3 { font-size: 21px; }
+
+  .lead { font-size: 23px; line-height: 1.6; }
+
+  .muted, .section-intro {
+    color: #a9bcd0;
+    line-height: 1.85;
+  }
+
+  .section-intro { margin-top: -15px; margin-bottom: 35px; }
+
+  .about-grid {
+    display: grid;
+    grid-template-columns: 1.1fr 1fr;
+    gap: 75px;
+  }
+
+  .skills {
+    border: 1px solid #293c52;
+    border-radius: 12px;
+    padding: 28px;
+    background: #142239;
+  }
+
+  .skills h3 { margin-top: 0; }
+
+  .tags { display: flex; flex-wrap: wrap; gap: 9px; }
+
+  .tag {
+    padding: 8px 12px;
+    background: #1a3045;
+    border: 1px solid #2b4861;
+    color: #a9ddeb;
+    font-size: 12px;
+    border-radius: 5px;
+  }
+
+  .experience-card {
+    display: flex;
+    justify-content: space-between;
+    gap: 30px;
+    border-left: 3px solid #00d4ff;
+    background: #101c2e;
+    padding: 28px 32px;
+    border-radius: 0 12px 12px 0;
+  }
+
+  .experience-card h3 { margin: 12px 0; }
+
+  .experience-date {
+    color: #19e6be;
+    white-space: nowrap;
+    font: 13px monospace;
+  }
+
+  .project-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 20px;
+  }
+
+  .project-card {
+    background: #142239;
+    border: 1px solid #293c52;
+    border-radius: 12px;
+    padding: 24px;
+    transition: transform .2s, border-color .2s;
+  }
+
+  .project-card:hover {
+    transform: translateY(-5px);
+    border-color: #00d4ff;
+  }
+
+  .project-top {
+    display: flex;
+    justify-content: space-between;
+    color: #19e6be;
+    font: 11px monospace;
+    letter-spacing: 1px;
+  }
+
+  .project-art {
+    position: relative;
+    height: 155px;
+    margin: 18px 0;
+    overflow: hidden;
+    display: grid;
+    place-items: center;
+    background: radial-gradient(
+      circle,
+      #174660 0%,
+      #0a192a 65%
+    );
+    border-radius: 8px;
+  }
+
+  .art-ring {
+    position: absolute;
+    width: 105px;
+    height: 105px;
+    border: 1px solid #00d4ff;
+    border-radius: 50%;
+    transform: rotateX(60deg) rotate(-25deg);
+  }
+
+  .art-ring-two {
+    width: 140px;
+    height: 75px;
+    border-color: #19e6be;
+    transform: rotate(-35deg);
+  }
+
+  .art-core {
+    width: 12px;
+    height: 12px;
+    background: #00d4ff;
+    border-radius: 50%;
+    box-shadow: 0 0 30px #00d4ff;
+  }
+
+  .project-card h3 { margin-bottom: 12px; }
+
+  .project-card p {
+    color: #a9bcd0;
+    font-size: 14px;
+    line-height: 1.8;
+    min-height: 100px;
+  }
+
+  .contact-section { text-align: center; }
+
+  .contact-section .muted {
+    max-width: 550px;
+    margin: 0 auto 30px;
+  }
+
+  footer {
+    border-top: 1px solid #233348;
+    padding: 30px 0;
+    color: #8195ac;
+    font-size: 12px;
+  }
+
+  .footer-inner {
+    display: flex;
+    justify-content: space-between;
+    gap: 15px;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: .01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+
+  @media (max-width: 800px) {
+    .hero {
+      grid-template-columns: 1fr;
+      padding-block: 70px;
+      gap: 0;
+    }
+
+    .visual { height: 310px; }
+
+    .about-grid { grid-template-columns: 1fr; gap: 25px; }
+    .project-grid { grid-template-columns: 1fr; }
+    .nav-links { gap: 13px; flex-wrap: wrap; }
+    .nav-links a { font-size: 11px; }
+    .experience-card { flex-direction: column; }
+  }
+
+  @media (max-width: 480px) {
+    .container { width: min(100% - 30px, 1120px); }
+    .navigation { flex-direction: column; padding-block: 15px; }
+    .section { padding: 65px 0; scroll-margin-top: 115px; }
+    .hero { padding-block: 55px; }
+    .visual { height: 260px; }
+    .footer-inner { flex-direction: column; }
+  }
+</style>
