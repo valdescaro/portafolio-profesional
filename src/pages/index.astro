@@ -4,10 +4,34 @@ import NeuralNetwork from "../components/NeuralNetwork.astro";
 
 const nombre = "Fabián Valdés";
 
-const habilidades = [
-  "Python", "SQL", "C++", "Machine Learning",
-  "Computer Vision", "Linux", "Docker",
-  "Automatización", "Análisis de datos"
+const stack = [
+  {
+    categoria: "Lenguajes de programación",
+    tecnologias: ["Python", "SQL", "C++", "Java", "MATLAB"]
+  },
+  {
+    categoria: "Ciencia de datos e IA",
+    tecnologias: [
+      "Pandas", "NumPy", "Scikit-learn",
+      "OpenCV", "Matplotlib", "Machine Learning"
+    ]
+  },
+  {
+    categoria: "Bases de datos",
+    tecnologias: ["MySQL", "SQLite"]
+  },
+  {
+    categoria: "Sistemas y herramientas",
+    tecnologias: ["Linux", "Git", "GitHub", "Docker"]
+  },
+  {
+    categoria: "Automatización científica",
+    tecnologias: [
+      "Excel avanzado",
+      "Procesamiento de señales",
+      "Informes automatizados"
+    ]
+  }
 ];
 
 const proyectos = [
@@ -123,9 +147,18 @@ const proyectos = [
 
             <div class="skills">
               <h3>Stack tecnológico</h3>
-              <div class="tags">
-                {habilidades.map((habilidad) => (
-                  <span class="tag">{habilidad}</span>
+
+              <div class="stack-groups">
+                {stack.map((grupo) => (
+                  <div class="stack-group">
+                    <h4>{grupo.categoria}</h4>
+
+                    <div class="tags">
+                      {grupo.tecnologias.map((tecnologia) => (
+                        <span class="tag">{tecnologia}</span>
+                      ))}
+                    </div>
+                  </div>
                 ))}
               </div>
             </div>
@@ -231,6 +264,30 @@ const proyectos = [
   body { margin: 0; }
 
   a { color: inherit; text-decoration: none; }
+  .stack-groups {
+    display: grid;
+    gap: 16px;
+  }
+
+  .stack-group {
+    padding: 18px;
+    border: 1px solid #293c52;
+    border-radius: 9px;
+    background: #101c2e;
+  }
+
+  .stack-group h4 {
+    margin: 0 0 14px;
+    color: #19e6be;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+  }
+
+  .stack-group .tags {
+    gap: 8px;
+  }
 
   .container {
     width: min(1120px, calc(100% - 48px));
@@ -393,8 +450,8 @@ const proyectos = [
 
   .about-grid {
     display: grid;
-    grid-template-columns: 1.1fr 1fr;
-    gap: 75px;
+    grid-template-columns: 0.85fr 1.15fr;
+    gap: 55px;
   }
 
   .skills {
