@@ -1,287 +1,253 @@
-
 <div class="neural-network" data-neural-network>
-  <canvas
-    class="neural-canvas"
-    aria-label="Visualización animada de una red neuronal artificial"
-    role="img"
-  ></canvas>
+  <canvas class="neural-canvas" role="img" aria-label="Red neuronal interactiva de cuatro capas: mueve el cursor para activar las neuronas y propagar señales."></canvas>
   <div class="neural-caption" aria-hidden="true">
     <span>NEURAL NETWORK / 001</span>
-    <span class="neural-status">● ACTIVE</span>
+    <span class="neural-status"><span class="status-light"></span> ACTIVE</span>
   </div>
 </div>
 
 <script>
-  function initializeNetwork(root: HTMLElement) {
-    const canvas = root.querySelector("canvas");
-    if (!(canvas instanceof HTMLCanvasElement)) return;
+  type Neuron = { x: number; y: number; layer: number; activation: number; target: number };
+  type Edge = { from: Neuron; to: Neuron; phase: number };
+  type Pulse = { edge: Edge; progress: number; speed: number; strength: number };
 
-    const ctx = canvas.getContext("2d");
+  function mountNetwork(root: HTMLElement) {
+    const canvas = root.querySelector('canvas');
+    if (!(canvas instanceof HTMLCanvasElement)) return;
+    const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
-    const motionQuery = window.matchMedia(
-      "(prefers-reduced-motion: reduce)"
-    );
-
-    type Node = {
-      x: number;
-      y: number;
-      activation: number;
-    };
-
-    type Connection = {
-      from: Node;
-      to: Node;
-      phase: number;
-    };
-
-    let nodes: Node[] = [];
-    let connections: Connection[] = [];
+    const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+    const layerSizes = [4, 6, 6, 3];
+    const layers: Neuron[][] = [];
+    let edges: Edge[] = [];
+    let pulses: Pulse[] = [];
     let width = 0;
     let height = 0;
-    let frame = 0;
     let raf = 0;
-    let running = false;
-    let visible = true;
-    let pointer = { x: -1000, y: -1000 };
+    let lastTime = 0;
+    let emissionTime = 0;
+    let isVisible = true;
+    let isRunning = false;
+    let pointer = { x: -1000, y: -1000, active: false };
 
-    const layers = [4, 6, 6, 3];
+    const clamp = (v: number, min: number, max: number) => Math.max(min, Math.min(max, v));
 
-    function resize() {
+    function build() {
       const rect = canvas!.getBoundingClientRect();
       width = rect.width;
       height = rect.height;
-
       const dpr = Math.min(window.devicePixelRatio || 1, 2);
       canvas!.width = Math.round(width * dpr);
       canvas!.height = Math.round(height * dpr);
-
       ctx!.setTransform(dpr, 0, 0, dpr, 0, 0);
+      layers.length = 0;
+      edges = [];
+      pulses = [];
 
-      nodes = [];
-      connections = [];
-
-      const grouped: Node[][] = [];
-
-      layers.forEach((count, layerIndex) => {
-        const group: Node[] = [];
-        const x = width * (0.12 + layerIndex * 0.25);
-
+      const marginX = Math.max(24, width * 0.095);
+      const spacingY = Math.min(43, (height - 100) / 5);
+      layerSizes.forEach((count, layer) => {
+        const x = marginX + (width - marginX * 2) * layer / (layerSizes.length - 1);
+        const neurons: Neuron[] = [];
         for (let i = 0; i < count; i++) {
-          const spacing = Math.min(43, height * 0.11);
-          const y = height / 2 +
-            (i - (count - 1) / 2) * spacing;
-
-          const node = { x, y, activation: 0 };
-          nodes.push(node);
-          group.push(node);
+          neurons.push({ x, y: height / 2 + (i - (count - 1) / 2) * spacingY,
+            layer, activation: 0, target: 0 });
         }
-
-        grouped.push(group);
+        layers.push(neurons);
       });
-
-      for (let i = 0; i < grouped.length - 1; i++) {
-        for (const from of grouped[i]) {
-          for (const to of grouped[i + 1]) {
-            connections.push({
-              from,
-              to,
-              phase: Math.random()
-            });
+      for (let layer = 0; layer < layers.length - 1; layer++) {
+        for (const from of layers[layer]) {
+          for (const to of layers[layer + 1]) {
+            edges.push({ from, to, phase: Math.random() });
           }
         }
       }
+      draw();
     }
 
-    function render() {
-      ctx!.clearRect(0, 0, width, height);
+    function launch(from: Neuron, strength: number) {
+      if (pulses.length > 100) return;
+      const outgoing = edges.filter(edge => edge.from === from);
+      for (const edge of outgoing) {
+        if (Math.random() < 0.55) {
+          pulses.push({ edge, progress: 0, speed: 0.55 + Math.random() * 0.35, strength });
+        }
+      }
+    }
 
-      const animated = !motionQuery.matches;
-      if (animated) frame++;
-
-      // Dibujar conexiones entre neuronas
-      for (const connection of connections) {
-        const { from, to } = connection;
-
-        ctx!.beginPath();
-        ctx!.moveTo(from.x, from.y);
-        ctx!.lineTo(to.x, to.y);
-        ctx!.strokeStyle = "rgba(0, 212, 255, 0.13)";
-        ctx!.lineWidth = 0.8;
-        ctx!.stroke();
-
-        if (animated) {
-          const progress =
-            (frame * 0.003 + connection.phase) % 1;
-
-          const x = from.x + (to.x - from.x) * progress;
-          const y = from.y + (to.y - from.y) * progress;
-
-          ctx!.beginPath();
-          ctx!.arc(x, y, 1.5, 0, Math.PI * 2);
-          ctx!.fillStyle = "rgba(25, 230, 190, 0.65)";
-          ctx!.fill();
+    function update(dt: number) {
+      emissionTime += dt;
+      if (emissionTime > 0.32) {
+        emissionTime = 0;
+        const inputs = layers[0];
+        if (inputs.length) {
+          const neuron = inputs[Math.floor(Math.random() * inputs.length)];
+          neuron.target = Math.max(neuron.target, 0.85);
+          launch(neuron, 0.7);
         }
       }
 
-      // Dibujar neuronas
-      for (const node of nodes) {
-        const distance = Math.hypot(
-          pointer.x - node.x,
-          pointer.y - node.y
-        );
-
-        const influence = Math.max(0, 1 - distance / 100);
-
-        node.activation = animated
-          ? node.activation * 0.88 + influence * 0.12
-          : influence;
-
-        const radius = 4 + node.activation * 4;
-
-        ctx!.beginPath();
-        ctx!.arc(node.x, node.y, radius + 6, 0, Math.PI * 2);
-        ctx!.fillStyle =
-          `rgba(0, 212, 255, ${0.025 + node.activation * 0.15})`;
-        ctx!.fill();
-
-        ctx!.beginPath();
-        ctx!.arc(node.x, node.y, radius, 0, Math.PI * 2);
-        ctx!.fillStyle = "#102b40";
-        ctx!.fill();
-
-        ctx!.strokeStyle =
-          node.activation > 0.1 ? "#19e6be" : "#00d4ff";
-        ctx!.lineWidth = 1.5;
-        ctx!.stroke();
+      for (const layer of layers) {
+        for (const neuron of layer) {
+          const distance = Math.hypot(pointer.x - neuron.x, pointer.y - neuron.y);
+          const hover = pointer.active ? clamp(1 - distance / 95, 0, 1) : 0;
+          if (hover > 0.35 && neuron.layer < 3 && Math.random() < dt * 2.5) {
+            launch(neuron, hover);
+          }
+          neuron.target = Math.max(neuron.target * Math.exp(-dt * 4), hover);
+          neuron.activation += (neuron.target - neuron.activation) * clamp(dt * 12, 0, 1);
+        }
       }
 
-      if (running && animated) {
-        raf = requestAnimationFrame(render);
+      for (let i = pulses.length - 1; i >= 0; i--) {
+        const pulse = pulses[i];
+        pulse.progress += pulse.speed * dt;
+        if (pulse.progress >= 1) {
+          pulse.edge.to.target = Math.max(pulse.edge.to.target, pulse.strength * 0.9);
+          if (pulse.edge.to.layer < 3 && Math.random() < 0.7) {
+            launch(pulse.edge.to, pulse.strength * 0.85);
+          }
+          pulses.splice(i, 1);
+        }
       }
     }
 
-    function start() {
-      if (running || !visible || document.hidden) return;
-      running = true;
-      render();
+    function draw() {
+      ctx!.clearRect(0, 0, width, height);
+      for (const edge of edges) {
+        const intensity = Math.max(edge.from.activation, edge.to.activation);
+        ctx!.beginPath();
+        ctx!.moveTo(edge.from.x, edge.from.y);
+        ctx!.lineTo(edge.to.x, edge.to.y);
+        ctx!.lineWidth = 0.7 + intensity * 0.7;
+        ctx!.strokeStyle = `rgba(0, 212, 255, ${0.12 + intensity * 0.38})`;
+        ctx!.stroke();
+      }
+      for (const pulse of pulses) {
+        const { from, to } = pulse.edge;
+        const x = from.x + (to.x - from.x) * pulse.progress;
+        const y = from.y + (to.y - from.y) * pulse.progress;
+        ctx!.beginPath();
+        ctx!.arc(x, y, 2 + pulse.strength, 0, Math.PI * 2);
+        ctx!.fillStyle = `rgba(25, 230, 190, ${0.55 + pulse.strength * 0.4})`;
+        ctx!.shadowBlur = 11;
+        ctx!.shadowColor = '#19e6be';
+        ctx!.fill();
+        ctx!.shadowBlur = 0;
+      }
+      for (const layer of layers) {
+        for (const neuron of layer) {
+          const a = neuron.activation;
+          ctx!.beginPath();
+          ctx!.arc(neuron.x, neuron.y, 9 + a * 9, 0, Math.PI * 2);
+          ctx!.fillStyle = `rgba(0, 212, 255, ${0.035 + a * 0.15})`;
+          ctx!.fill();
+          ctx!.beginPath();
+          ctx!.arc(neuron.x, neuron.y, 4.2 + a * 2.5, 0, Math.PI * 2);
+          ctx!.fillStyle = a > 0.35 ? '#104b53' : '#102b40';
+          ctx!.fill();
+          ctx!.strokeStyle = a > 0.25 ? '#19e6be' : '#00d4ff';
+          ctx!.lineWidth = 1.5 + a;
+          ctx!.stroke();
+        }
+      }
+    }
+
+    function tick(time: number) {
+      if (!isRunning) return;
+      const dt = lastTime ? Math.min((time - lastTime) / 1000, 0.05) : 0.016;
+      lastTime = time;
+      update(dt);
+      draw();
+      raf = requestAnimationFrame(tick);
     }
 
     function stop() {
-      running = false;
+      isRunning = false;
       cancelAnimationFrame(raf);
+      lastTime = 0;
     }
 
-    function updateMotion() {
-      stop();
-      render();
-      if (!motionQuery.matches) start();
+    function start() {
+      if (isRunning || !isVisible || document.hidden || reducedMotion.matches) return;
+      isRunning = true;
+      raf = requestAnimationFrame(tick);
     }
 
-    canvas.addEventListener("pointermove", (event) => {
-      const rect = canvas.getBoundingClientRect();
-      pointer.x = event.clientX - rect.left;
-      pointer.y = event.clientY - rect.top;
-
-      if (motionQuery.matches) render();
-    });
-
-    canvas.addEventListener("pointerleave", () => {
-      pointer = { x: -1000, y: -1000 };
-      if (motionQuery.matches) render();
-    });
-
-    const resizeObserver = new ResizeObserver(() => {
-      resize();
-      if (!running) render();
-    });
-
-    const intersectionObserver = new IntersectionObserver(
-      (entries) => {
-        visible = entries[0]?.isIntersecting ?? false;
-        if (visible && !motionQuery.matches) start();
-        else stop();
+    function onPointerMove(event: PointerEvent) {
+      const rect = canvas!.getBoundingClientRect();
+      pointer = { x: event.clientX - rect.left, y: event.clientY - rect.top, active: true };
+      if (reducedMotion.matches) {
+        for (const layer of layers) for (const neuron of layer) {
+          neuron.activation = clamp(1 - Math.hypot(pointer.x - neuron.x, pointer.y - neuron.y) / 95, 0, 1);
+        }
+        draw();
       }
-    );
+    }
+    function onPointerLeave() {
+      pointer.active = false;
+      if (reducedMotion.matches) {
+        for (const layer of layers) for (const neuron of layer) neuron.activation = 0;
+        draw();
+      }
+    }
+    function onMotionChange() { stop(); draw(); start(); }
+    function onVisibilityChange() { if (document.hidden) stop(); else start(); }
 
-    const onVisibilityChange = () => {
-      if (document.hidden) stop();
-      else if (!motionQuery.matches) start();
-    };
-
+    canvas.addEventListener('pointermove', onPointerMove);
+    canvas.addEventListener('pointerleave', onPointerLeave);
+    reducedMotion.addEventListener('change', onMotionChange);
+    document.addEventListener('visibilitychange', onVisibilityChange);
+    const resizeObserver = new ResizeObserver(build);
     resizeObserver.observe(canvas);
+    const intersectionObserver = new IntersectionObserver(entries => {
+      isVisible = entries[0]?.isIntersecting ?? false;
+      if (isVisible) start(); else stop();
+    });
     intersectionObserver.observe(root);
-    motionQuery.addEventListener("change", updateMotion);
-    document.addEventListener(
-      "visibilitychange",
-      onVisibilityChange
-    );
-
-    resize();
-    if (motionQuery.matches) render();
-    else start();
+    build();
+    start();
 
     return () => {
       stop();
       resizeObserver.disconnect();
       intersectionObserver.disconnect();
-      motionQuery.removeEventListener("change", updateMotion);
-      document.removeEventListener(
-        "visibilitychange",
-        onVisibilityChange
-      );
+      canvas.removeEventListener('pointermove', onPointerMove);
+      canvas.removeEventListener('pointerleave', onPointerLeave);
+      reducedMotion.removeEventListener('change', onMotionChange);
+      document.removeEventListener('visibilitychange', onVisibilityChange);
     };
   }
 
-  document.querySelectorAll<HTMLElement>(
-    "[data-neural-network]"
-  ).forEach((root) => {
-    initializeNetwork(root);
-  });
+  document.querySelectorAll<HTMLElement>('[data-neural-network]').forEach(mountNetwork);
 </script>
 
 <style>
   .neural-network {
     position: relative;
     width: 100%;
-    height: 400px;
-    border-radius: 16px;
+    height: 420px;
     overflow: hidden;
-    background: radial-gradient(
-      ellipse at center,
-      rgba(0, 212, 255, 0.07),
-      transparent 70%
-    );
+    border-radius: 16px;
+    background: radial-gradient(ellipse at center, rgba(0, 212, 255, .065), transparent 72%);
   }
-
-  .neural-canvas {
-    display: block;
-    width: 100%;
-    height: 100%;
-    touch-action: pan-y;
-  }
-
+  .neural-canvas { display: block; width: 100%; height: 100%; touch-action: pan-y; }
   .neural-caption {
     position: absolute;
     bottom: 16px;
-    left: 18px;
-    right: 18px;
+    left: 16px;
+    right: 16px;
     display: flex;
     justify-content: space-between;
     gap: 12px;
-    color: #7e9fb6;
+    color: #829eb6;
     font: 10px monospace;
     letter-spacing: 1px;
     pointer-events: none;
   }
-
-  .neural-status { color: #19e6be; }
-
-  @media (max-width: 800px) {
-    .neural-network { height: 320px; }
-  }
-
-  @media (max-width: 480px) {
-    .neural-network { height: 260px; }
-  }
+  .neural-status { color: #19e6be; white-space: nowrap; }
+  .status-light { display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: #19e6be; }
+  @media (max-width: 800px) { .neural-network { height: 320px; } }
+  @media (max-width: 480px) { .neural-network { height: 270px; } }
 </style>
